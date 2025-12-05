@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a VS Code extension called "react-refactor-to-file" - a React refactoring tool currently in early development (v0.0.1). The extension uses esbuild for bundling and TypeScript for type safety.
+This is a VS Code extension called "react-refactor-to-file" that allows developers to extract React component fragments from an existing file into a new component file. The extension automates the tedious process of creating new components by:
+- Extracting selected JSX/TSX code
+- Creating a new component file with proper boilerplate
+- Replacing the selection with a component tag
+- Adding the appropriate import statement
+
+The extension uses esbuild for bundling and TypeScript for type safety.
 
 ## Build System
 
@@ -49,7 +55,27 @@ The extension follows the standard VS Code extension structure:
 - Disposables should be added to `context.subscriptions` for proper cleanup
 - `deactivate()` function is called when the extension is deactivated
 
-Currently registers one command: `react-refactor-to-file.helloWorld`
+## Extension Features
+
+Command: `react-refactor-to-file.extractToFile` (title: "React: Extract to Component File")
+
+**Workflow:**
+1. User selects JSX/TSX fragment in the editor
+2. User runs the command (via Command Palette or keybinding)
+3. Extension prompts for new component name (validates PascalCase format)
+4. Extension performs the extraction:
+   - Creates a new file `ComponentName.tsx` or `ComponentName.jsx` (matches source file type)
+   - Generates component boilerplate with the selected code
+   - Replaces selection with `<ComponentName />`
+   - Adds import statement at the appropriate position
+   - Opens the new file in a side-by-side view
+
+**Implementation Details:**
+- `findImportInsertPosition()` - Finds the correct position to insert imports (after existing imports)
+- `getRelativeImportPath()` - Generates proper relative import paths with cross-platform support
+- `createComponentContent()` - Generates component boilerplate, adjusting for TypeScript vs JavaScript
+- Component name validation ensures PascalCase convention
+- Automatically detects `.tsx` vs `.jsx` based on source file extension
 
 ## Testing
 
