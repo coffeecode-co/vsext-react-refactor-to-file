@@ -1,8 +1,14 @@
 {
   "name": "react-refactor-to-file",
-  "repository": "https://github.com/coffeecode-co/vsext-react-refactor-to-file",
+  "publisher": "jpleon",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coffeecode-co/vsext-react-refactor-to-file"
+  },
+  "license": "MIT",
+  "icon": "./public/icon.png",
   "displayName": "react-refactor-to-file",
-  "description": "React refactor tool",
+  "description": "Easily extract React components or JSX/TSX into separate files with automatic imports and optional test generation.",
   "version": "0.0.2",
   "engines": {
     "vscode": "^1.104.0"
@@ -53,19 +59,19 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+    "vscode:prepublish": "pnpm run build",
+    "build": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "compile": "pnpm run build",
     "vsix": "npx @vscode/vsce package",
+    "test": "vscode-test",
+    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
-    "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/vscode": "1.104.0",

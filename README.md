@@ -45,6 +45,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
+## Development
+
+1.  Clone the repository.
+2.  Install dependencies: `pnpm install`.
+3.  Open in VS Code.
+4.  Run `pnpm run watch` (or `npm run watch`) to start the compiler in watch mode.
+5.  Press `F5` to open a new VS Code window with the extension loaded.
+
 ## Known Issues
 
 None known at this time.
