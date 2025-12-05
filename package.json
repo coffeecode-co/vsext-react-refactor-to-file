@@ -2,7 +2,7 @@
   "name": "react-refactor-to-file",
   "displayName": "react-refactor-to-file",
   "description": "React refactor tool",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.104.0"
   },
@@ -20,8 +20,36 @@
       {
         "command": "react-refactor-to-file.extractToFileCustomPath",
         "title": "React: Extract to Component File (Custom Path)"
+      },
+      {
+        "command": "react-refactor-to-file.help",
+        "title": "React: Show Extension Help"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "React Refactor to File",
+      "properties": {
+        "react-refactor-to-file.test.generate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically generate a test file for the extracted component."
+        },
+        "react-refactor-to-file.test.strategy": {
+          "type": "string",
+          "enum": [
+            "relative",
+            "interactive"
+          ],
+          "default": "relative",
+          "description": "Strategy for test file location: 'relative' to component or 'interactive' selection."
+        },
+        "react-refactor-to-file.test.relativePath": {
+          "type": "string",
+          "default": "__tests__",
+          "description": "Relative path for test files when strategy is 'relative'. Use '.' for same directory."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",

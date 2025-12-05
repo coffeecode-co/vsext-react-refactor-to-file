@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { ComponentGenerator } from "../services/ComponentGenerator";
+import { TestGenerator } from "../services/TestGenerator";
 import { ImportManager } from "../services/ImportManager";
 
 export interface ExtractOptions {
@@ -10,10 +11,12 @@ export interface ExtractOptions {
 export class ExtractComponentController {
   private componentGenerator: ComponentGenerator;
   private importManager: ImportManager;
+  private testGenerator: TestGenerator;
 
   constructor() {
     this.componentGenerator = new ComponentGenerator();
     this.importManager = new ImportManager();
+    this.testGenerator = new TestGenerator();
   }
 
   public async execute(options: ExtractOptions = {}) {
@@ -135,6 +138,15 @@ export class ExtractComponentController {
       Buffer.from(newComponentContent, "utf8")
     );
 
+    // --- TEST GENERATION START ---
+    const config = vscode.workspace.getConfiguration("react-refactor-to-file");
+    const shouldGenerateTest = config.get<boolean>("test.generate", false);
+
+    if (shouldGenerateTest) {
+      await this.generateTestFile(componentName, targetDir, config);
+    }
+    // --- TEST GENERATION END ---
+
     // Replace the selected text with the component tag
     await editor.edit((editBuilder) => {
       editBuilder.replace(selection, `<${componentName} />`);
@@ -154,6 +166,55 @@ export class ExtractComponentController {
       preview: false,
       viewColumn: vscode.ViewColumn.Beside,
     });
+  }
+
+  private async generateTestFile(
+    componentName: string,
+    componentDir: string,
+    config: vscode.WorkspaceConfiguration
+  ) {
+    const strategy = config.get<string>("test.strategy", "relative");
+    let testDir = componentDir;
+
+    if (strategy === "interactive") {
+      const folderResult = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        defaultUri: vscode.Uri.file(componentDir),
+        openLabel: "Select Test Folder",
+      });
+
+      if (folderResult && folderResult.length > 0) {
+        testDir = folderResult[0].fsPath;
+      } else {
+        // User cancelled, skip test generation
+        return;
+      }
+    } else {
+      // Relative strategy
+      const relativePath = config.get<string>("test.relativePath", "__tests__");
+      testDir = path.join(componentDir, relativePath);
+
+      // Ensure directory exists
+      try {
+        await vscode.workspace.fs.createDirectory(vscode.Uri.file(testDir));
+      } catch (e) {
+        console.error("Failed to create test directory", e);
+      }
+    }
+
+    const testContent = this.testGenerator.generate(componentName);
+    const testFilePath = path.join(testDir, `${componentName}.test.tsx`);
+
+    try {
+      await vscode.workspace.fs.writeFile(
+        vscode.Uri.file(testFilePath),
+        Buffer.from(testContent, "utf8")
+      );
+    } catch (e) {
+      vscode.window.showErrorMessage(`Failed to create test file: ${e}`);
+    }
   }
 
   private async addImportStatement(
