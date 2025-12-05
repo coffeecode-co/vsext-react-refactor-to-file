@@ -1,5 +1,6 @@
 {
   "name": "react-refactor-to-file",
+  "repository": "https://github.com/coffeecode-co/vsext-react-refactor-to-file",
   "displayName": "react-refactor-to-file",
   "description": "React refactor tool",
   "version": "0.0.2",
