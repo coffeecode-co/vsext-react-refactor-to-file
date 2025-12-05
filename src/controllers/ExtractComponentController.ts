@@ -3,6 +3,10 @@ import * as path from "path";
 import { ComponentGenerator } from "../services/ComponentGenerator";
 import { ImportManager } from "../services/ImportManager";
 
+export interface ExtractOptions {
+  promptForDestination?: boolean;
+}
+
 export class ExtractComponentController {
   private componentGenerator: ComponentGenerator;
   private importManager: ImportManager;
@@ -12,7 +16,7 @@ export class ExtractComponentController {
     this.importManager = new ImportManager();
   }
 
-  public async execute() {
+  public async execute(options: ExtractOptions = {}) {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
@@ -55,7 +59,8 @@ export class ExtractComponentController {
         editor,
         selection,
         selectedText,
-        componentName
+        componentName,
+        options
       );
       vscode.window.showInformationMessage(
         `Component ${componentName} created successfully`
@@ -69,11 +74,29 @@ export class ExtractComponentController {
     editor: vscode.TextEditor,
     selection: vscode.Selection,
     selectedText: string,
-    componentName: string
+    componentName: string,
+    options: ExtractOptions
   ) {
     // Get the current file path and directory
     const currentFilePath = editor.document.uri.fsPath;
-    const currentDir = path.dirname(currentFilePath);
+    let targetDir = path.dirname(currentFilePath);
+
+    if (options.promptForDestination) {
+      const folderResult = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        defaultUri: vscode.Uri.file(targetDir),
+        openLabel: "Select Destination Folder",
+      });
+
+      if (folderResult && folderResult.length > 0) {
+        targetDir = folderResult[0].fsPath;
+      } else {
+        // User cancelled folder selection
+        return;
+      }
+    }
 
     // Determine file extension (.tsx or .jsx based on current file)
     const currentExt = path.extname(currentFilePath);
@@ -81,8 +104,23 @@ export class ExtractComponentController {
     const newFileExt = isTypeScript ? ".tsx" : ".jsx";
 
     // Create the new file path
-    const newFilePath = path.join(currentDir, `${componentName}${newFileExt}`);
+    const newFilePath = path.join(targetDir, `${componentName}${newFileExt}`);
     const newFileUri = vscode.Uri.file(newFilePath);
+
+    // Check if file already exists
+    try {
+      await vscode.workspace.fs.stat(newFileUri);
+      const overwrite = await vscode.window.showWarningMessage(
+        `File ${componentName}${newFileExt} already exists. Overwrite?`,
+        "Yes",
+        "No"
+      );
+      if (overwrite !== "Yes") {
+        return;
+      }
+    } catch {
+      // File does not exist, proceed
+    }
 
     // Create the new component content
     const newComponentContent = this.componentGenerator.generate(

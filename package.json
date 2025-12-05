@@ -16,6 +16,10 @@
       {
         "command": "react-refactor-to-file.extractToFile",
         "title": "React: Extract to Component File"
+      },
+      {
+        "command": "react-refactor-to-file.extractToFileCustomPath",
+        "title": "React: Extract to Component File (Custom Path)"
       }
     ]
   },
